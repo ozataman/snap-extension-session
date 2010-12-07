@@ -18,6 +18,8 @@ be appreciated.
 Let's add a user id to our session and persist it:
 
     import qualified Data.Map as M
+    import           Snap.Extension.Session
+    
 
     ...
 
