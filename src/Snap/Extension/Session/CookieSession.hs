@@ -17,7 +17,7 @@
 module Snap.Extension.Session.CookieSession
   ( CookieSessionState
   , HasCookieSessionState(..)
-  , cookieStateInitializer
+  , cookieSessionStateInitializer
   ) where
 
 import           Control.Monad
@@ -64,10 +64,10 @@ class HasCookieSessionState s where
 --
 -- Provide a 'FilePath' to where the secure key can be found.
 -- If the file is not found, a key will be generated and saved in its place.
-cookieStateInitializer :: FilePath  -- ^ Path to key file.
+cookieSessionStateInitializer :: FilePath  -- ^ Path to key file.
                        -> ByteString  -- ^ Name of the session cookie.
                        -> Initializer CookieSessionState
-cookieStateInitializer fp cn = do
+cookieSessionStateInitializer fp cn = do
   st <- liftIO $ do
     k <- getKey fp 
     return $ CookieSessionState k cn
