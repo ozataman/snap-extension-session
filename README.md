@@ -8,14 +8,14 @@ in a near release.
 
 ## Introduction
 
-This package is intended as a simple session management system for Snap
+This package is intended as a simple session persistence framework for Snap
 applications. For those familiar with Rails, the functionality is similar to 
     
     session[:user_id] = 1234
     session[:last_query] = "johnpollak"
 
-The difference, however, is that we can't just store arbitrary data-types and
-instead use only ByteString types.
+The difference, however, is that we can't just store arbitrary data -types and
+instead use only ByteStrings.
 
 
 We define a type Session as
@@ -39,7 +39,7 @@ the user's id in our session in a secure way:
     ...
 
     myHandler = do
-      setInSession "user_id" "1456" s -- that's all we have to do!
+      setInSession "user_id" "1456" -- that's all we have to do!
       render "pages/myPage"
 
 The "user_id" field will now be available in this user's session until we
@@ -48,7 +48,7 @@ delete it or expire the session.
 We can now retrieve it at any point with:
     
     myHandler2 = do
-      getFromSession "user_id"
+      uid <- getFromSession "user_id"
       render "pages/myPage2"
 
 
@@ -82,3 +82,5 @@ database.
 * Increase security: Maybe add a random token into encrypted cookie (or
   something like that to the same effect) to reduce the likelihood of somebody
   guessing sessions with very little in them. 
+* Add convenience functions to clear session
+* Add convenience functions to set session expiration time-out
