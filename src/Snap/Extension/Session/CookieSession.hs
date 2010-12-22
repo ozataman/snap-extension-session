@@ -95,15 +95,18 @@ instance HasCookieSessionState s => MonadSession (SnapExtend s) where
     cs <- asks getCookieSessionState
     let val = encrypt (csKey cs) . encode $ s
     let nc = Cookie (csCookieName cs) val Nothing Nothing (Just "/")
-    modifyResponse $ addCookie nc
+    modifyResponse $ addResponseCookie nc
     
 
   ----------------------------------------------------------------------------
   -- | Read the session from the cookie. If none is present, return empty map.
   getSession = do
-    cs <- asks getCookieSessionState
-    ck <- getCookie (csCookieName cs)
-    let val = fmap cookieValue ck >>= decrypt (csKey cs) >>= return . decode
+    key <- csKey `fmap` asks getCookieSessionState
+    cn <- csCookieName `fmap` asks getCookieSessionState
+    rqCookie <- getCookie cn
+    rspCookie <- getResponseCookie cn `fmap` getResponse
+    let ck = rspCookie `mplus` rqCookie
+    let val = fmap cookieValue ck >>= decrypt key >>= return . decode
     return $ maybe M.empty (either decodeFail id) val
     where 
       decodeFail = const $ 
