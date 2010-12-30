@@ -15,7 +15,10 @@
 -}
 
 module Snap.Extension.Session.CookieSession
-  ( CookieSessionState
+  ( 
+    module Snap.Extension.Session
+  , CookieSessionState(..)
+  , defCookieSessionState
   , HasCookieSessionState(..)
   , cookieSessionStateInitializer
   ) where
@@ -34,14 +37,35 @@ import           Snap.Types
 import           Web.ClientSession
 
 import           Snap.Extension.Session
+import           Snap.Extension.Session.Common
 
 
 ------------------------------------------------------------------------------
 -- | 
 data CookieSessionState = CookieSessionState
-  { csKey :: Key 
-  , csCookieName :: ByteString
+  { csKey :: Key                    -- ^ Cookie encryption key
+  , csKeyPath :: FilePath           -- ^ Where the encryption key is stored
+  , csCookieName :: ByteString      -- ^ Cookie name for your app
+  , csTimeout :: Maybe Int          -- ^ Timeout in minutes
+  , csAuthToken :: Bool             -- ^ Keep authenticity token in session
   }
+
+
+------------------------------------------------------------------------------
+-- | 'defCookieSessionState' is a good starting point when initializing your
+-- app. The default configuration is:
+--
+-- > csKeyPath = "site_key.txt"
+-- > csCookieName = "snap-session"
+-- > csTimeout = Just 30
+-- > csAuthToken = True
+defCookieSessionState :: CookieSessionState
+defCookieSessionState = CookieSessionState 
+                          { csKeyPath = "site_key.txt"
+                          , csKey = ""
+                          , csCookieName = "snap-session"
+                          , csTimeout = Just 30
+                          , csAuthToken = True }
 
 
 ------------------------------------------------------------------------------
@@ -60,17 +84,15 @@ class HasCookieSessionState s where
 
 
 ------------------------------------------------------------------------------
--- | Initializes the 'CookieSessionState' with the encryption key.
---
--- Provide a 'FilePath' to where the secure key can be found.
--- If the file is not found, a key will be generated and saved in its place.
-cookieSessionStateInitializer :: FilePath  -- ^ Path to key file.
-                       -> ByteString  -- ^ Name of the session cookie.
-                       -> Initializer CookieSessionState
-cookieSessionStateInitializer fp cn = do
+-- | Initializes the given 'CookieSessionState'. It will read the encryption
+-- key if present, create one at random and save if missing.
+cookieSessionStateInitializer 
+  :: CookieSessionState
+  -> Initializer CookieSessionState
+cookieSessionStateInitializer cs = do
   st <- liftIO $ do
-    k <- getKey fp 
-    return $ CookieSessionState k cn
+    k <- getKey (csKeyPath cs) 
+    return $ cs { csKey = k }
   mkInitializer st
 
 
@@ -89,11 +111,10 @@ instance HasCookieSessionState s => MonadSession (SnapExtend s) where
   ----------------------------------------------------------------------------
   -- | Serialize the session, inject into cookie, modify response.
   --
-  -- This cookie does not expire. 
-  -- TODO: Implement expiration policy.
   setSession s = do
     cs <- asks getCookieSessionState
-    let val = encrypt (csKey cs) . encode $ s
+    s' <- setSessionParams s cs
+    let val = encrypt (csKey cs) . encode $ s'
     let nc = Cookie (csCookieName cs) val Nothing Nothing (Just "/")
     modifyResponse $ addResponseCookie nc
     
@@ -101,13 +122,34 @@ instance HasCookieSessionState s => MonadSession (SnapExtend s) where
   ----------------------------------------------------------------------------
   -- | Read the session from the cookie. If none is present, return empty map.
   getSession = do
-    key <- csKey `fmap` asks getCookieSessionState
-    cn <- csCookieName `fmap` asks getCookieSessionState
+    cs <- asks getCookieSessionState
+    let key = csKey cs
+    let cn = csCookieName cs
     rqCookie <- getCookie cn
     rspCookie <- getResponseCookie cn `fmap` getResponse
     let ck = rspCookie `mplus` rqCookie
     let val = fmap cookieValue ck >>= decrypt key >>= return . decode
-    return $ maybe M.empty (either decodeFail id) val
+    let val' = maybe M.empty (either decodeFail id) val
+    to <- checkTimeout (csTimeout cs) val'
+    return $ case to of
+      True -> M.empty
+      False -> val'
     where 
       decodeFail = const $ 
         error "Data.Serialize: Could not decode contenst of the cookie session."
+
+------------------------------------------------------------------------------
+-- | Deal with setting security related parameters based on supplied
+-- preferences.
+setSessionParams :: (MonadSnap m) 
+                 => Session 
+                 -> CookieSessionState 
+                 -> m Session
+setSessionParams s cs = do
+  s' <- case csAuthToken cs of
+    True -> setAuthenticityToken s
+    False -> return s
+  s'' <- case csTimeout cs of
+    Just _ -> setTimeStamp s'
+    Nothing -> return s'
+  return s''

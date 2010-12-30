@@ -5,11 +5,6 @@
 module Snap.Extension.Session
   ( MonadSession(..)
   , Session
-
-    -- * Higher Level Functions
-  , getFromSession
-  , setInSession
-  , deleteFromSession
   ) where
 
 import           Control.Monad
@@ -28,40 +23,55 @@ type Session = Map ByteString ByteString
 
 
 ------------------------------------------------------------------------------
--- | The 'MonadCookieSession' class. Minimal complete definition:
+-- | The 'MonadCookieSession' class. Minimum complete definition: 'getSession'
+-- and 'setSession'.
 class MonadSnap m => MonadSession m where
 
   ----------------------------------------------------------------------------
   -- | Function to get the session in your app's monad.
   --
   -- This will return a @Map ByteString ByteString@ data type, which you can
-  -- then use freely to read/write values. Remember to commit it back with
-  -- 'setSession' if you want to persist changes.
+  -- then use freely to read/write values. 
   getSession :: m Session
 
 
   ----------------------------------------------------------------------------
-  -- | Function to set the session in your app's monad.
+  -- | Set the session in your app's monad.
   setSession :: Session -> m ()
 
 
-------------------------------------------------------------------------------
--- | Get a value associated with given key from the 'Session'.
-getFromSession :: MonadSession m => ByteString -> m (Maybe ByteString)
-getFromSession k = Map.lookup k `liftM` getSession
+  ------------------------------------------------------------------------------
+  -- | Get a value associated with given key from the 'Session'.
+  getFromSession :: ByteString -> m (Maybe ByteString)
+  getFromSession k = Map.lookup k `liftM` getSession
 
 
-------------------------------------------------------------------------------
--- | Remove the given key from 'Session'
-deleteFromSession :: MonadSession m => ByteString -> m ()
-deleteFromSession k = Map.delete k `liftM` getSession >>= setSession
+  ------------------------------------------------------------------------------
+  -- | Remove the given key from 'Session'
+  deleteFromSession :: ByteString -> m ()
+  deleteFromSession k = Map.delete k `liftM` getSession >>= setSession
 
 
-------------------------------------------------------------------------------
--- | Set a value in the 'Session'.
-setInSession :: MonadSession m 
-             => ByteString 
-             -> ByteString 
-             -> m ()
-setInSession k v = Map.insert k v `liftM` getSession >>= setSession
+  ------------------------------------------------------------------------------
+  -- | Set a value in the 'Session'.
+  setInSession :: ByteString 
+               -> ByteString 
+               -> m ()
+  setInSession k v = Map.insert k v `liftM` getSession >>= setSession
+
+
+  ----------------------------------------------------------------------------
+  -- | Clear the active session. Uses 'setSession'.
+  clearSession :: m ()
+  clearSession = setSession Map.empty
+
+
+  ----------------------------------------------------------------------------
+  -- | Touch session to reset the timeout. You can chain a handler to call this
+  -- in every authenticated route to keep prolonging the session with each
+  -- request.
+  touchSession :: m ()
+  touchSession = undefined
+
+
 
