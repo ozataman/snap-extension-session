@@ -34,11 +34,11 @@ User/session management has two basic levels (potentially more if you add
 permissions/roles/etc.):
 
   - Making sure an established session between any user - authenticated or
-  	otherwise - user and the server stays secure.
+  	otherwise - and the server stays secure.
   - Authenticating users, which means having proof that a user is who she says
-  	she is before we grant her some important priveleges in our applications.
+  	she is before we grant her some important priveleges in our application.
 
-This module tackles the first of these challenges. A separate Snap.Auth module
+This package tackles the first of these challenges. A separate Snap.Auth module
 builds on the foundation here to provide the authentication-specific
 functionality.
 
@@ -47,21 +47,20 @@ Both of these packages will be incorporated into Snap, likely starting with the
 
 ## Usage Example
 
-Let's assume we have an odd desire to persist our user's age in our
-application's session store: 
+Let's assume we have an odd desire to persist our user's age in our session
+store: 
 
     import qualified Data.Map as M
     import           Snap.Extension.Session
     
-
     ...
 
     myHandler = do
       setInSession "user_age" "32" -- that's all we have to do!
       render "pages/myPage"
 
-The "user_age" session field will now be available in this user's session until
-we delete it or expire the session.
+The "user_age" field will now be available in this user's session until we
+delete it or expire the session.
 
 We can now retrieve it at any point with:
     
