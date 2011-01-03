@@ -93,7 +93,7 @@ Let's setup the session functionality using the CookieSession backend.
 
 
 And you are done. While you have to do this manually for now, we will in the
-future have the @snap@ executable auto-generate some of this boiler plate
+future have the snap executable auto-generate some of this boiler plate
 for you.
 
 

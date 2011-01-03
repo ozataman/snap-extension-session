@@ -136,7 +136,7 @@ instance HasCookieSessionState s => MonadSession (SnapExtend s) where
       False -> val'
     where 
       decodeFail = const $ 
-        error "Data.Serialize: Could not decode contenst of the cookie session."
+        error "Data.Serialize: Could not decode contents of the cookie session."
 
 ------------------------------------------------------------------------------
 -- | Deal with setting security related parameters based on supplied
