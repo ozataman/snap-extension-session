@@ -30,11 +30,11 @@ import           Snap.Extension.Session
 -- | Insert an authenticity token against CSRF into the session.
 setAuthenticityToken :: (MonadSnap m) => Session -> m Session
 setAuthenticityToken s = 
-  case Map.lookup "_snap_authenticity_token" s of
+  case Map.lookup "_csrf_token" s of
     Just _ -> return s
     Nothing -> do
       t <- liftIO randomToken
-      return $ Map.insert "_snap_authenticity_token" t s
+      return $ Map.insert "_csrf_token" t s
 
 
 ------------------------------------------------------------------------------

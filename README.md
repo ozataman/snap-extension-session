@@ -124,7 +124,7 @@ database.
 
 # TODO/ROADMAP
 
-## General Interface improvements
+## General / Interface improvements
 - Authenticity token support to prevent CSRF attacks 
 - Timestamping option to limit replay attacks in time 
 - Splices/handlers for easy CSRF protection token integration:
