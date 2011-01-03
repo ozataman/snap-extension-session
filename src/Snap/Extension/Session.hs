@@ -71,7 +71,7 @@ class MonadSnap m => MonadSession m where
   -- in every authenticated route to keep prolonging the session with each
   -- request.
   touchSession :: m ()
-  touchSession = undefined
+  touchSession = getSession >>= setSession
 
 
 
