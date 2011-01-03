@@ -76,13 +76,6 @@ class HasCookieSessionState s where
   -- | Getter to get 'CookieSessionState' from your app's state.
   getCookieSessionState :: s -> CookieSessionState
 
-
-  ----------------------------------------------------------------------------
-  -- | Setter to inject 'CookieSessionState' into your app's state.
-  setCookieSessionState :: CookieSessionState -> s -> s
-
-
-
 ------------------------------------------------------------------------------
 -- | Initializes the given 'CookieSessionState'. It will read the encryption
 -- key if present, create one at random and save if missing.

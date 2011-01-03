@@ -81,7 +81,6 @@ Let's setup the session functionality using the CookieSession backend.
     -- Instantiate your app as a MonadSession
     instance HasCookieSessionState ApplicationState where
       getCookieSessionState = appSessionSt
-      setCookieSessionState cs as = as { appSessionSt = cs }
 
     -- Add some simple initializer code
     appInit :: Initializer ApplicationState
