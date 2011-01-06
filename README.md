@@ -125,11 +125,16 @@ database.
 # TODO/ROADMAP
 
 ## General / Interface improvements
-- Authenticity token support to prevent CSRF attacks 
-- Timestamping option to limit replay attacks in time 
+- Make some fields opaque/standard
+  - User-id
+  - csrf_token
+  - cookie timestamp
+- Integrate with Snap.Auth
+- Timestamping option to limit replay attacks in time (in progress)
+- Authenticity token support to prevent CSRF attacks (in progress)
 - Splices/handlers for easy CSRF protection token integration:
   - csrf_meta_tag for unobtrusive JS based binding to forms (like in Rails 3)
-  - csrf_token_tag for a hidden field inside forms
+  - csrf_token_tag for a hidden field inside forms (in progress)
   - verify_authenticity handler to be chained before your destructive handlers
 
 ## Planned Back-ends
